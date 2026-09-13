@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "protoc plugin that generates TypeScript clients for grpc-web",
   "bin": {
-    "grpc-ts-web": "./command.js"
+    "grpc-ts-web": "command.js"
   },
   "repository": {
     "type": "git",
