@@ -26,7 +26,29 @@ function platform() {
   }
 }
 
-const pluginPath = path.join(__dirname, `bin/protoc-gen-grpc-ts-web-${platform()}-amd64`);
+function arch() {
+  switch (process.arch) {
+    case 'x64':
+      return 'amd64';
+    case 'arm64':
+      return 'arm64';
+    default:
+      return process.arch;
+  }
+}
+
+const pluginPath = path.join(__dirname, `bin/protoc-gen-grpc-ts-web-${platform()}-${arch()}`);
+
+if (!fs.existsSync(pluginPath)) {
+  console.error(
+    `grpc-ts-web: no plugin binary for ${process.platform}/${process.arch} ` +
+      `(looked for ${pluginPath}).\n` +
+      'Build one from source with `make build` in ' +
+      'https://github.com/freifunkMUC/protoc-gen-grpc-ts-web and put it there, ' +
+      'or open an issue asking for the platform to be added to the release.',
+  );
+  process.exit(1);
+}
 
 program.arguments('<protos...>')
   .requiredOption('-o, --out <directory>', 'a directory to write the generated code to')

@@ -1,17 +1,25 @@
 {
-  "name": "grpc-ts-web",
-  "version": "0.2.0",
-  "description": "",
+  "name": "@freifunkmuc/grpc-ts-web",
+  "version": "0.3.0",
+  "description": "protoc plugin that generates TypeScript clients for grpc-web",
   "bin": {
     "grpc-ts-web": "./command.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freifunkMUC/protoc-gen-grpc-ts-web.git"
+  },
   "author": "James Batt",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@types/google-protobuf": "^3.7.2",
-    "commander": "^4.1.1",
-    "google-protobuf": "^3.11.4",
-    "grpc-web": "^1.0.7"
+    "commander": "^4.1.1"
+  },
+  "peerDependencies": {
+    "google-protobuf": "^3.11.4 || ^4.0.0",
+    "grpc-web": "^1.0.7 || ^2.0.0"
   },
   "files": [
     "command.js",

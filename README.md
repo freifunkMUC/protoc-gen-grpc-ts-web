@@ -14,8 +14,15 @@ This plugin improves the ergonomics of the generated client code in a number of 
 ## Installation
 
 ```bash
-npm install --save grpc-ts-web
+npm install --save-dev @freifunkmuc/grpc-ts-web
 ```
+
+This is a fork of [Place1/protoc-gen-grpc-ts-web](https://github.com/Place1/protoc-gen-grpc-ts-web).
+The binary is still called `grpc-ts-web`, so existing `npm run codegen` scripts keep working after switching the dependency.
+
+`google-protobuf` and `grpc-web` are peer dependencies. the generated client
+imports them, this package does not. Supported ranges are `google-protobuf@^3.11.4 || ^4`
+and `grpc-web@^1.0.7 || ^2`
 
 ## Usage
 
@@ -27,13 +34,21 @@ a Typescript GRPC client from a set of proto files.
 ./node_modules/.bin/grpc-ts-web -o ./out ./path/to/protos/**/*.proto
 ```
 
-If you'd like to invoke protoc yourself using this plugin then you can use the following command
-instead where `<platform>` is one of linux, darwin or windows.
+If you'd like to invoke protoc yourself using this plugin then you can use the following
+command instead. Binaries ship for `darwin-amd64`, `darwin-arm64`, `linux-amd64`,
+`linux-arm64` and `windows-amd64`.
 
 ```bash
 # using protoc directly
-protoc --plugin=protoc-gen-grpc-ts-web=./node_modules/.bin/protoc-gen-grpc-ts-web-<platform>-amd64 --grpc-ts-web_out ./sdk
+protoc --plugin=protoc-gen-grpc-ts-web=./node_modules/@freifunkmuc/grpc-ts-web/bin/protoc-gen-grpc-ts-web-<platform>-<arch> --grpc-ts-web_out ./sdk
 ```
+
+## Releasing
+
+Bump the version in `npm/package.json`, then push a matching tag (`v0.3.0` for
+version `0.3.0`). The release workflow builds every platform binary and publishes
+to npm; it refuses to publish if the tag and `npm/package.json` disagree.
+Requires an `NPM_TOKEN` secret with publish rights for the `@freifunkmuc` scope.
 
 ## Example Output
 

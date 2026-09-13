@@ -1,19 +1,24 @@
 OUT=bin
 BINARY=protoc-gen-grpc-ts-web
-PLATFORMS=darwin linux windows
-ARCHITECTURES=amd64
+# platform/arch pairs shipped inside the npm package.
+# Keep in sync with platform()/arch() in npm/command.js.
+TARGETS=darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64
 
 build:
 	echo "running build"
 	go build -o $(OUT)/$(BINARY) .
 
 release: clean
-	echo "running release"
-	mkdir -p $(OUT)
-	$(foreach GOOS, $(PLATFORMS),\
-	$(foreach GOARCH, $(ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); go build -o $(OUT)/$(BINARY)-$(GOOS)-$(GOARCH))))
-	rm -r npm/bin/ || true
-	cp -r $(OUT)/ npm/$(OUT)/
+	@echo "running release"
+	@mkdir -p $(OUT)
+	@for target in $(TARGETS); do \
+		goos=$${target%/*}; goarch=$${target#*/}; \
+		echo "  building $$goos/$$goarch"; \
+		CGO_ENABLED=0 GOOS=$$goos GOARCH=$$goarch \
+			go build -o $(OUT)/$(BINARY)-$$goos-$$goarch . || exit 1; \
+	done
+	@rm -rf npm/$(OUT)
+	@cp -r $(OUT)/ npm/$(OUT)/
 
 test: build
 	echo "running test"
