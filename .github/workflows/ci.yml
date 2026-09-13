@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26"
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26"
+
+      - name: Install protoc
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      - name: Build the plugin
+        run: make build
+
+      - name: Generate a client from example.proto
+        run: |
+          mkdir -p .ci/gen
+          protoc \
+            --plugin=bin/protoc-gen-grpc-ts-web \
+            --grpc-ts-web_out=.ci/gen \
+            -I example example/example.proto
+          test -s .ci/gen/example_pb.ts
+
+      - name: Typecheck the generated client
+        working-directory: .ci
+        run: |
+          cat > package.json <<'JSON'
+          {
+            "name": "generated-client-typecheck",
+            "version": "0.0.0",
+            "private": true
+          }
+          JSON
+          cat > tsconfig.json <<'JSON'
+          {
+            "compilerOptions": {
+              "strict": true,
+              "noEmit": true,
+              "moduleResolution": "bundler",
+              "target": "es2020",
+              "module": "esnext",
+              "skipLibCheck": true
+            }
+          }
+          JSON
+          npm install --no-audit --no-fund typescript@6 google-protobuf@4 @types/google-protobuf
+          for version in 1.2.1 2; do
+            echo "::group::grpc-web@$version"
+            npm install --no-audit --no-fund "grpc-web@$version"
+            npx tsc
+            echo "::endgroup::"
+          done
