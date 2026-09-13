@@ -48,7 +48,10 @@ protoc --plugin=protoc-gen-grpc-ts-web=./node_modules/@freifunkmuc/grpc-ts-web/b
 Bump the version in `npm/package.json`, then push a matching tag (`v0.3.0` for
 version `0.3.0`). The release workflow builds every platform binary and publishes
 to npm; it refuses to publish if the tag and `npm/package.json` disagree.
-Requires an `NPM_TOKEN` secret with publish rights for the `@freifunkmuc` scope.
+
+Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
+
+
 
 ## Example Output
 
