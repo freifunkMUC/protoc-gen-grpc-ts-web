@@ -42,7 +42,13 @@ jobs:
       - name: Typecheck the generated client
         working-directory: .ci
         run: |
-          npm init -y >/dev/null
+          cat > package.json <<'JSON'
+          {
+            "name": "generated-client-typecheck",
+            "version": "0.0.0",
+            "private": true
+          }
+          JSON
           cat > tsconfig.json <<'JSON'
           {
             "compilerOptions": {
