@@ -653,18 +653,6 @@ func run(tpl string, file *descriptor.FileDescriptorProto, depLookup map[string]
 	return buf.String()
 }
 
-func unique(strs []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range strs {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
 func uniqueMessages(msgs []Dependency) []Dependency {
 	keys := make(map[string]bool)
 	list := []Dependency{}
