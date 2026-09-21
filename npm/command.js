@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const program = require('commander');
+// commander >= 5 exports the program instead of being it
+const { program } = require('commander');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -11,8 +12,18 @@ function spawnAsync(cmd, args) {
     const p = spawn(cmd, args)
     p.stdout.pipe(process.stdout);
     p.stderr.pipe(process.stderr);
+    // protoc is not installed, or not on PATH
+    p.on('error', reject);
+    // A failed protoc run has to fail this command too: otherwise
+    // "npm run codegen" reports success and the old files stay in place.
     p.on('exit', (code, signal) => {
-      resolve();
+      if (code === 0) {
+        resolve();
+      } else if (signal) {
+        reject(new Error(`${cmd} was killed by ${signal}`));
+      } else {
+        reject(new Error(`${cmd} exited with code ${code}`));
+      }
     });
   });
 }
@@ -52,6 +63,10 @@ if (!fs.existsSync(pluginPath)) {
 
 program.arguments('<protos...>')
   .requiredOption('-o, --out <directory>', 'a directory to write the generated code to')
+  .option(
+    '--format <format>',
+    'the gRPC-Web wire format of the generated client: "text" (default) or "binary"',
+  )
   .action((protos, options) => {
     if (!fs.existsSync(options.out)) {
       fs.mkdirSync(options.out);
@@ -60,13 +75,19 @@ program.arguments('<protos...>')
       .map(p => path.dirname(p))
       .map(p => `--proto_path=${p}`)
       .filter((value, index, self) => self.indexOf(value) === index);
+    // left to the plugin to validate, so the CLI and protoc agree on the rules
+    const pluginOptions = options.format ? [`--grpc-ts-web_opt=format=${options.format}`] : [];
     return spawnAsync('protoc', [
       '--grpc-ts-web_out',
       options.out,
+      ...pluginOptions,
       `--plugin=protoc-gen-grpc-ts-web=${pluginPath}`,
       ...includes,
       ...protos,
-    ]);
+    ]).catch((err) => {
+      console.error(`grpc-ts-web: ${err.message}`);
+      process.exitCode = 1;
+    });
   });
 
 program.parse(process.argv);

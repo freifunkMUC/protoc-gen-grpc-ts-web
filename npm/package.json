@@ -1,6 +1,6 @@
 {
   "name": "@freifunkmuc/grpc-ts-web",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "protoc plugin that generates TypeScript clients for grpc-web",
   "bin": {
     "grpc-ts-web": "command.js"
@@ -15,7 +15,10 @@
     "access": "public"
   },
   "dependencies": {
-    "commander": "^4.1.1"
+    "commander": "^15.0.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   },
   "peerDependencies": {
     "google-protobuf": "^3.11.4 || ^4.0.0",
