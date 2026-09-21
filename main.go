@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -28,8 +28,7 @@ func main() {
 		reader = f
 	}
 
-	data, err := ioutil.ReadAll(reader)
-	// data, err := ioutil.ReadFile("example-stdin.bin")
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "reading input"))
 	}
