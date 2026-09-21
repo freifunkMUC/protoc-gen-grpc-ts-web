@@ -8,9 +8,9 @@ import (
 
 	"github.com/place1/protoc-gen-grpc-ts-web/templates"
 
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
+	plugin "google.golang.org/protobuf/types/pluginpb"
 )
 
 var input = flag.String("code-generator-request", "", "A path to a protobuf encoded CodeGeneratorRequest")
