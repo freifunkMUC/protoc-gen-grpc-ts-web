@@ -43,6 +43,29 @@ command instead. Binaries ship for `darwin-amd64`, `darwin-arm64`, `linux-amd64`
 protoc --plugin=protoc-gen-grpc-ts-web=./node_modules/@freifunkmuc/grpc-ts-web/bin/protoc-gen-grpc-ts-web-<platform>-<arch> --grpc-ts-web_out ./sdk
 ```
 
+## Options
+
+### `format`
+
+The gRPC-Web wire format of the generated client:
+
+- `text` (default) - messages are base64-encoded (`application/grpc-web-text`). This is what
+  earlier versions always generated.
+- `binary` - messages are sent as they are (`application/grpc-web+proto`). Smaller and cheaper,
+  and the only format some servers accept: [connect-go](https://connectrpc.com), for instance,
+  answers `application/grpc-web-text` with `415 Unsupported Media Type`.
+
+Text was needed for server streaming in browsers that could not read binary XHR responses.
+For unary calls, or with any current browser, binary is the better choice.
+
+```bash
+# using the npm command
+./node_modules/.bin/grpc-ts-web --format binary -o ./out ./path/to/protos/**/*.proto
+
+# using protoc directly
+protoc --plugin=protoc-gen-grpc-ts-web=<path to the binary> --grpc-ts-web_opt=format=binary --grpc-ts-web_out ./sdk
+```
+
 ## Releasing
 
 Bump the version in `npm/package.json`, then push a matching tag (`v0.3.0` for

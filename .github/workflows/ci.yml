@@ -30,14 +30,21 @@ jobs:
       - name: Build the plugin
         run: make build
 
+      - name: Run the Go tests
+        run: go test ./...
+
       - name: Generate a client from example.proto
         run: |
-          mkdir -p .ci/gen
-          protoc \
-            --plugin=bin/protoc-gen-grpc-ts-web \
-            --grpc-ts-web_out=.ci/gen \
-            -I example example/example.proto
-          test -s .ci/gen/example_pb.ts
+          for format in text binary; do
+            mkdir -p .ci/gen/$format
+            protoc \
+              --plugin=bin/protoc-gen-grpc-ts-web \
+              --grpc-ts-web_opt=format=$format \
+              --grpc-ts-web_out=.ci/gen/$format \
+              -I example example/example.proto
+            test -s .ci/gen/$format/example_pb.ts
+            grep -q "format: '$format'" .ci/gen/$format/example_pb.ts
+          done
 
       - name: Typecheck the generated client
         working-directory: .ci

@@ -39,19 +39,30 @@ func main() {
 		log.Fatal(errors.Wrap(err, "bad codegen request"))
 	}
 
-	depLookupTable := templates.NewDependencyLookupTable(req)
-
-	res := &plugin.CodeGeneratorResponse{}
-	for _, f := range req.ProtoFile {
-		if err != nil {
-			log.Fatal(errors.Wrap(err, "failed to generate output file"))
-		}
-		res.File = append(res.File, templates.NewFile(f, depLookupTable)...)
-	}
+	res := generate(req)
 
 	out, err := proto.Marshal(res)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "failed to marshal codegen response"))
 	}
 	os.Stdout.Write(out)
+}
+
+// generate builds the response for one protoc run. A bad option is reported
+// through the response's error field, which is how protoc expects a plugin to
+// fail: it prints the message and exits non-zero instead of choking on output
+// it cannot parse.
+func generate(req *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
+	options, err := parseOptions(req.GetParameter())
+	if err != nil {
+		return &plugin.CodeGeneratorResponse{Error: proto.String(err.Error())}
+	}
+
+	depLookupTable := templates.NewDependencyLookupTable(req)
+
+	res := &plugin.CodeGeneratorResponse{}
+	for _, f := range req.ProtoFile {
+		res.File = append(res.File, templates.NewFile(f, depLookupTable, options)...)
+	}
+	return res
 }

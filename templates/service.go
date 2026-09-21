@@ -42,7 +42,7 @@ import * as {{ importNS $dependency }} from '{{importPath $dependency}}';
 export class {{.Name}} {
 
 	private client_ = new grpcWeb.GrpcWebClientBase({
-		format: 'text',
+		format: '{{ clientFormat }}',
 	});
 {{range $method := .Method}}
 	private methodInfo{{$method.Name}} = new grpcWeb.MethodDescriptor<{{requestMessage $method $file}}, {{responseMessage $method $file}}>(
@@ -622,7 +622,7 @@ func recursiveMsgDeps(message Dependency, depLookup map[string]Dependency) []Dep
 	return messages
 }
 
-func NewFile(file *descriptor.FileDescriptorProto, depLookup map[string]Dependency) []*plugin.CodeGeneratorResponse_File {
+func NewFile(file *descriptor.FileDescriptorProto, depLookup map[string]Dependency, options Options) []*plugin.CodeGeneratorResponse_File {
 	// well-known proto files from google/protobuf will
 	// be provided by the google-protobuf npm package
 	if strings.HasPrefix(file.GetName(), "google/protobuf") {
@@ -631,13 +631,16 @@ func NewFile(file *descriptor.FileDescriptorProto, depLookup map[string]Dependen
 	return []*plugin.CodeGeneratorResponse_File{
 		&plugin.CodeGeneratorResponse_File{
 			Name:    proto.String(stripProto(file.GetName()) + "_pb.ts"),
-			Content: proto.String(run(code, file, depLookup)),
+			Content: proto.String(run(code, file, depLookup, options)),
 		},
 	}
 }
 
-func run(tpl string, file *descriptor.FileDescriptorProto, depLookup map[string]Dependency) string {
-	t, err := template.New("").Funcs(funcmap(depLookup)).Parse(tpl)
+func run(tpl string, file *descriptor.FileDescriptorProto, depLookup map[string]Dependency, options Options) string {
+	funcs := funcmap(depLookup)
+	funcs["clientFormat"] = func() string { return string(options.Format) }
+
+	t, err := template.New("").Funcs(funcs).Parse(tpl)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "bad service template"))
 	}
