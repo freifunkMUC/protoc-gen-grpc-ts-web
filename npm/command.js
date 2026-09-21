@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const program = require('commander');
+// commander >= 5 exports the program instead of being it
+const { program } = require('commander');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');

@@ -46,6 +46,28 @@ jobs:
             grep -q "format: '$format'" .ci/gen/$format/example_pb.ts
           done
 
+      # The npm package is a wrapper around the plugin. Run it the way users
+      # do, so that a breaking dependency update or a swallowed protoc error
+      # shows up here and not in somebody's codegen.
+      - name: Test the CLI wrapper
+        working-directory: npm
+        run: |
+          npm ci --no-audit --no-fund
+          mkdir -p bin ../.ci
+          cp ../bin/protoc-gen-grpc-ts-web "bin/protoc-gen-grpc-ts-web-linux-$(go env GOARCH)"
+
+          node command.js -o ../.ci/cli-default ../example/example.proto
+          grep -q "format: 'text'" ../.ci/cli-default/example_pb.ts
+
+          node command.js --format binary -o ../.ci/cli-binary ../example/example.proto
+          grep -q "format: 'binary'" ../.ci/cli-binary/example_pb.ts
+
+          # an invalid value has to fail the command, not just print an error
+          if node command.js --format json -o ../.ci/cli-invalid ../example/example.proto; then
+            echo "an invalid format did not fail the CLI"
+            exit 1
+          fi
+
       - name: Typecheck the generated client
         working-directory: .ci
         run: |
