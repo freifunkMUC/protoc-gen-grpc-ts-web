@@ -44,7 +44,11 @@ func main() {
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "failed to marshal codegen response"))
 	}
-	os.Stdout.Write(out)
+	// The whole response goes to protoc through stdout. If it does not arrive,
+	// this run failed - exiting 0 would leave protoc with nothing to write.
+	if _, err := os.Stdout.Write(out); err != nil {
+		log.Fatal(errors.Wrap(err, "failed to write the codegen response"))
+	}
 }
 
 // generate builds the response for one protoc run. A bad option is reported
